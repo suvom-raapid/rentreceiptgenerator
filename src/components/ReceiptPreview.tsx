@@ -17,31 +17,105 @@ function formatIndianNumber(num: number): string {
   return num.toLocaleString('en-IN')
 }
 
+// Raw hex colors per theme for inline-styled print/PDF output
+const THEME_COLORS: Record<string, { header: string; headerText: string; headerBorder: string; amountBg: string; amountBorder: string; amountText: string; amountLabel: string; stamp: string; stampBg: string }> = {
+  'classic-blue':      { header: '#1a365d', headerText: '#ffffff', headerBorder: '', amountBg: '#f0fdf4', amountBorder: '#bbf7d0', amountText: '#15803d', amountLabel: '#16a34a', stamp: '#d97706', stampBg: '#fffbeb' },
+  'professional-dark': { header: '#1c1c1e', headerText: '#ffffff', headerBorder: '', amountBg: '#f9fafb', amountBorder: '#d1d5db', amountText: '#111827', amountLabel: '#6b7280', stamp: '#6b7280', stampBg: '#f9fafb' },
+  'royal-maroon':      { header: '#7b2d3b', headerText: '#ffffff', headerBorder: '', amountBg: '#fff1f2', amountBorder: '#fecdd3', amountText: '#9f1239', amountLabel: '#e11d48', stamp: '#d97706', stampBg: '#fffbeb' },
+  'forest-green':      { header: '#1a4d2e', headerText: '#ffffff', headerBorder: '', amountBg: '#f0fdfa', amountBorder: '#99f6e4', amountText: '#115e59', amountLabel: '#0f766e', stamp: '#d97706', stampBg: '#fffbeb' },
+  'minimal-gray':      { header: '#ffffff', headerText: '#111827', headerBorder: 'border-bottom: 2px solid #1f2937;', amountBg: '#f9fafb', amountBorder: '#e5e7eb', amountText: '#111827', amountLabel: '#6b7280', stamp: '#6b7280', stampBg: '#f9fafb' },
+}
+
+function getColors(themeId: string) {
+  return THEME_COLORS[themeId] || THEME_COLORS['classic-blue']
+}
+
+function buildReceiptHTML(r: ReceiptData, c: ReturnType<typeof getColors>): string {
+  return `<div class="receipt" style="border:1px solid #d1d5db;border-radius:4px;overflow:hidden;font-family:'DM Sans',system-ui,-apple-system,sans-serif;font-size:11px;background:#fff;">
+  <div style="background:${c.header};color:${c.headerText};padding:6px 16px;display:flex;justify-content:space-between;align-items:center;${c.headerBorder}">
+    <strong style="font-size:11px;text-transform:uppercase;letter-spacing:2px;">Rent Receipt</strong>
+    <span style="font-size:10px;opacity:0.8;">No. ${r.receiptNumber}</span>
+  </div>
+  <div style="padding:10px 16px;">
+    <div style="display:flex;justify-content:space-between;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-bottom:8px;">
+      <div style="display:flex;gap:20px;">
+        <div><div style="font-size:8px;text-transform:uppercase;color:#9ca3af;letter-spacing:0.5px;">Date</div><div style="font-weight:500;color:#1f2937;">${r.date}</div></div>
+        <div><div style="font-size:8px;text-transform:uppercase;color:#9ca3af;letter-spacing:0.5px;">Period</div><div style="font-weight:500;color:#1f2937;">${r.monthYear}</div></div>
+      </div>
+      <div><div style="font-size:8px;text-transform:uppercase;color:#9ca3af;letter-spacing:0.5px;">Payment Mode</div><div style="font-weight:500;color:#1f2937;">${r.paymentMode}</div></div>
+    </div>
+    <div style="background:${c.amountBg};border:1px solid ${c.amountBorder};border-radius:6px;padding:6px 12px;margin-bottom:8px;">
+      <div style="font-size:8px;text-transform:uppercase;color:${c.amountLabel};font-weight:600;letter-spacing:0.5px;">Amount Received</div>
+      <div style="font-size:18px;font-weight:bold;color:${c.amountText};">\u20B9${formatIndianNumber(r.rentAmount)}/-</div>
+      <div style="font-size:9px;color:${c.amountLabel};font-style:italic;">${r.rentAmountWords}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div>
+        <div style="font-size:8px;text-transform:uppercase;color:#9ca3af;letter-spacing:0.5px;">Received From (Tenant)</div>
+        <div style="font-weight:600;color:#1f2937;">${r.tenantName}${r.tenantPAN ? ` <span style="font-size:9px;color:#6b7280;background:#f3f4f6;padding:1px 4px;border-radius:3px;">PAN: ${r.tenantPAN}</span>` : ''}</div>
+        <div style="font-size:8px;text-transform:uppercase;color:#9ca3af;margin-top:4px;letter-spacing:0.5px;">Property Address</div>
+        <div style="font-size:10px;color:#4b5563;">${r.propertyAddress}</div>
+      </div>
+      <div>
+        <div style="font-size:8px;text-transform:uppercase;color:#9ca3af;letter-spacing:0.5px;">Received By (Landlord)</div>
+        <div style="font-weight:600;color:#1f2937;">${r.landlordName}${r.landlordPAN ? ` <span style="font-size:9px;color:#6b7280;background:#f3f4f6;padding:1px 4px;border-radius:3px;">PAN: ${r.landlordPAN}</span>` : ''}</div>
+      </div>
+    </div>
+    <div style="border-top:1px solid #e5e7eb;padding-top:8px;display:flex;justify-content:space-between;align-items:flex-end;">
+      ${r.includeRevenueStamp ? `<div style="text-align:center;">
+        <div style="width:45px;height:45px;border:1.5px dashed ${c.stamp};background:${c.stampBg};border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <span style="color:${c.stamp};font-weight:bold;font-size:10px;">\u20B91</span>
+          <span style="font-size:6px;color:${c.stamp};text-transform:uppercase;letter-spacing:0.5px;">Revenue</span>
+          <span style="font-size:6px;color:${c.stamp};text-transform:uppercase;letter-spacing:0.5px;">Stamp</span>
+        </div>
+        <div style="font-size:7px;color:#9ca3af;margin-top:1px;">Affix here</div>
+      </div>` : '<div></div>'}
+      <div style="text-align:center;">
+        <div style="width:120px;border-bottom:1.5px solid #9ca3af;margin-bottom:4px;height:14px;"></div>
+        <div style="font-size:9px;color:#6b7280;font-weight:500;">Signature of Landlord</div>
+        <div style="font-size:8px;color:#9ca3af;">(${r.landlordName})</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:8px;color:#9ca3af;margin-top:6px;font-style:italic;border-top:1px dashed #e5e7eb;padding-top:4px;">
+      This receipt is issued as acknowledgement of rent received for the above mentioned property.
+    </div>
+  </div>
+</div>`
+}
+
 export default function ReceiptPreview({ receipts, formData, themeId }: ReceiptPreviewProps) {
   const printRef = useRef<HTMLDivElement>(null)
   const [downloading, setDownloading] = useState(false)
   const theme = getThemeById(themeId)
 
   const handleDownload = async () => {
-    if (!printRef.current) return
     setDownloading(true)
 
     try {
-      const receiptEls = printRef.current.querySelectorAll<HTMLElement>('.receipt-card')
+      const colors = getColors(themeId)
       const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
       const pageW = 210
       const pageH = 297
       const margin = 10
       const usableW = pageW - margin * 2
-      const receiptH = (pageH - margin * 2 - 10) / 3 // 3 per page with gaps
+      const receiptH = (pageH - margin * 2 - 10) / 3
 
-      for (let i = 0; i < receiptEls.length; i++) {
+      // Hidden container for rendering inline-styled receipts
+      const container = document.createElement('div')
+      container.style.cssText = `position:absolute;left:-9999px;top:0;width:700px;font-family:'DM Sans',system-ui,sans-serif;background:#fff;`
+      document.body.appendChild(container)
+
+      for (let i = 0; i < receipts.length; i++) {
         const posOnPage = i % 3
         if (i > 0 && posOnPage === 0) doc.addPage()
 
-        const canvas = await html2canvas(receiptEls[i], {
+        container.innerHTML = buildReceiptHTML(receipts[i], colors)
+        const el = container.firstElementChild as HTMLElement
+
+        const canvas = await html2canvas(el, {
           scale: 2,
           useCORS: true,
+          allowTaint: true,
           backgroundColor: '#ffffff',
           logging: false,
         })
@@ -60,44 +134,39 @@ export default function ReceiptPreview({ receipts, formData, themeId }: ReceiptP
         doc.addImage(imgData, 'PNG', x, y, drawW, drawH)
       }
 
+      document.body.removeChild(container)
+
       const tenantSlug = formData.tenantName.replace(/\s+/g, '_').replace(/[^\w-]/g, '')
       const fromLabel = formatMonthLabel(formData.fromMonth)
       const toLabel = formatMonthLabel(formData.toMonth)
       doc.save(`Rent_Receipts_${tenantSlug}_${fromLabel}_to_${toLabel}.pdf`)
     } catch (err) {
       console.error('PDF generation failed:', err)
+      alert('PDF generation failed. Please try the Print button and select "Save as PDF".')
     } finally {
       setDownloading(false)
     }
   }
 
   const handlePrint = () => {
-    const printArea = printRef.current
-    if (!printArea) return
-
     const printWindow = window.open('', '_blank')
-    if (!printWindow) return
-
-    // Grab all stylesheets from the current page
-    const styleSheets = Array.from(document.styleSheets)
-    let cssText = ''
-    for (const sheet of styleSheets) {
-      try {
-        const rules = Array.from(sheet.cssRules || [])
-        cssText += rules.map((r) => r.cssText).join('\n')
-      } catch {
-        // cross-origin sheets — skip
-      }
+    if (!printWindow) {
+      alert('Pop-up blocked. Please allow pop-ups for this site to print receipts.')
+      return
     }
+
+    const colors = getColors(themeId)
+    const receiptHTML = receipts.map(r => buildReceiptHTML(r, colors)).join('')
 
     printWindow.document.write(`<!DOCTYPE html>
 <html><head><title>Rent Receipts</title>
-<style>${cssText}
-@media print {
-  body { margin: 0; padding: 10px; }
-  .receipt-card { break-inside: avoid; page-break-inside: avoid; margin-bottom: 12px; box-shadow: none !important; }
-}
-</style></head><body>${printArea.innerHTML}</body></html>`)
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', system-ui, -apple-system, sans-serif; padding: 0; }
+  @page { size: A4; margin: 6mm 8mm; }
+  .receipt { break-inside: avoid; page-break-inside: avoid; margin-bottom: 4px; }
+</style>
+</head><body>${receiptHTML}</body></html>`)
     printWindow.document.close()
     printWindow.focus()
     setTimeout(() => {

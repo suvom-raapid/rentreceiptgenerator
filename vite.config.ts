@@ -10,7 +10,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'pdf': ['jspdf'],
+          'pdf': ['jspdf', 'html2canvas'],
           'blog': ['./src/lib/blogData'],
         },
       },

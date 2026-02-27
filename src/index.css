@@ -22,10 +22,27 @@ body {
 }
 
 @media print {
+  /* Hide everything by default */
+  body > #root > div > * {
+    display: none !important;
+  }
   .no-print {
     display: none !important;
   }
-  .print-only {
+
+  /* Show only the receipt preview section */
+  #print-area {
     display: block !important;
+  }
+  #print-area .receipt-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 12px;
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+
+  body, #root, #root > div {
+    background: white !important;
   }
 }

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { FileText, Shield, Download, Zap, ArrowRight, CheckCircle, Lock, Clock } from 'lucide-react'
+import { FileText, Shield, Download, Zap, ArrowRight, CheckCircle, Lock, Clock, Palette } from 'lucide-react'
 import SEOHead from '../components/SEOHead'
 import RentReceiptForm from '../components/RentReceiptForm'
 import ReceiptPreview from '../components/ReceiptPreview'
@@ -10,6 +10,7 @@ import ScrollToTopButton from '../components/ScrollToTopButton'
 import { generateReceipts } from '../lib/generatePDF'
 import type { FormData, ReceiptData } from '../lib/generatePDF'
 import { blogPosts } from '../lib/blogData'
+import { themes } from '../lib/themes'
 
 function getReceiptCount(): string {
   const count = parseInt(localStorage.getItem('receiptCount') || '14500', 10)
@@ -19,6 +20,7 @@ function getReceiptCount(): string {
 export default function Home() {
   const [receipts, setReceipts] = useState<ReceiptData[] | null>(null)
   const [formData, setFormData] = useState<FormData | null>(null)
+  const [themeId, setThemeId] = useState('classic-blue')
   const previewRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLDivElement>(null)
   const [receiptCount, setReceiptCount] = useState(getReceiptCount)
@@ -189,7 +191,34 @@ export default function Home() {
       {receipts && formData && (
         <section className="py-14 bg-bg-light" ref={previewRef}>
           <div className="max-w-5xl mx-auto px-4">
-            <ReceiptPreview receipts={receipts} formData={formData} />
+            {/* Theme Selector */}
+            <div className="mb-8 bg-white border border-border rounded-xl p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Palette size={18} className="text-primary" />
+                <h3 className="text-sm font-semibold text-text-primary">Receipt Theme</h3>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {themes.map((theme) => {
+                  const isSelected = theme.id === themeId
+                  return (
+                    <button
+                      key={theme.id}
+                      onClick={() => setThemeId(theme.id)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer border ${
+                        isSelected
+                          ? 'border-primary bg-primary/5 text-primary ring-2 ring-primary/20'
+                          : 'border-border bg-white text-text-secondary hover:border-gray-400 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className={`w-4 h-4 rounded-full ${theme.headerBg.split(' ')[0]}`} />
+                      {theme.name}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <ReceiptPreview receipts={receipts} formData={formData} themeId={themeId} />
           </div>
         </section>
       )}

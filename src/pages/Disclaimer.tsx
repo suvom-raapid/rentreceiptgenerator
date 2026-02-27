@@ -1,6 +1,4 @@
 import SEOHead from '../components/SEOHead'
-import AdPlaceholder from '../components/AdPlaceholder'
-
 export default function Disclaimer() {
   return (
     <>
@@ -93,13 +91,12 @@ export default function Disclaimer() {
           <h2 className="text-xl font-semibold text-primary mt-8 mb-3">Contact</h2>
           <p>
             If you have questions or concerns about this disclaimer, please contact us at{' '}
-            <a href="mailto:contact@rentreceiptindia.in" className="text-primary underline">
-              contact@rentreceiptindia.in
+            <a href="mailto:suvom.iitp@gmail.com" className="text-primary underline">
+              suvom.iitp@gmail.com
             </a>.
           </p>
         </div>
 
-        <AdPlaceholder slot="disclaimer-bottom" className="mt-8" />
       </div>
     </>
   )

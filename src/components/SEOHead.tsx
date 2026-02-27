@@ -7,7 +7,7 @@ interface SEOHeadProps {
   type?: string
 }
 
-const BASE_URL = 'https://suvomdas.github.io/rentreceiptgenerator'
+const BASE_URL = 'https://rentreceiptindia.com'
 
 export default function SEOHead({ title, description, path = '', type = 'website' }: SEOHeadProps) {
   useEffect(() => {

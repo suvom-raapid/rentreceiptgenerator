@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://suvomdas.github.io/rentreceiptgenerator/sitemap.xml
+Sitemap: https://rentreceiptindia.com/sitemap.xml

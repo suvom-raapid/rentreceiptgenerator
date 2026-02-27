@@ -2,7 +2,7 @@
 
 A free, no-signup-required online tool to generate professional rent receipts for **HRA (House Rent Allowance) exemption** under Section 10(13A) of the Income Tax Act, India.
 
-**Live Site:** [https://suvomdas.github.io/rentreceiptgenerator/](https://suvomdas.github.io/rentreceiptgenerator/)
+**Live Site:** [https://rentreceiptindia.com/](https://rentreceiptindia.com/)
 
 ## Features
 

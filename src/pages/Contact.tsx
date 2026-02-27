@@ -1,14 +1,12 @@
 import { useState } from 'react'
 import { Mail, Send } from 'lucide-react'
 import SEOHead from '../components/SEOHead'
-import AdPlaceholder from '../components/AdPlaceholder'
-
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const mailtoLink = `mailto:contact@rentreceiptindia.in?subject=${encodeURIComponent(
+    const mailtoLink = `mailto:suvom.iitp@gmail.com?subject=${encodeURIComponent(
       form.subject
     )}&body=${encodeURIComponent(
       `Name: ${form.name}\nEmail: ${form.email}\n\n${form.message}`
@@ -41,10 +39,10 @@ export default function Contact() {
           <div>
             <p className="text-sm font-medium text-text-primary">Email us directly</p>
             <a
-              href="mailto:contact@rentreceiptindia.in"
+              href="mailto:suvom.iitp@gmail.com"
               className="text-primary underline text-sm"
             >
-              contact@rentreceiptindia.in
+              suvom.iitp@gmail.com
             </a>
           </div>
         </div>
@@ -111,7 +109,6 @@ export default function Contact() {
           </p>
         </div>
 
-        <AdPlaceholder slot="contact-bottom" className="mt-8" />
       </div>
     </>
   )

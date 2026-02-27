@@ -1,6 +1,4 @@
 import SEOHead from '../components/SEOHead'
-import AdPlaceholder from '../components/AdPlaceholder'
-
 export default function TermsOfService() {
   return (
     <>
@@ -143,13 +141,12 @@ export default function TermsOfService() {
           </p>
           <p>
             <strong>Email:</strong>{' '}
-            <a href="mailto:contact@rentreceiptindia.in" className="text-primary underline">
-              contact@rentreceiptindia.in
+            <a href="mailto:suvom.iitp@gmail.com" className="text-primary underline">
+              suvom.iitp@gmail.com
             </a>
           </p>
         </div>
 
-        <AdPlaceholder slot="terms-bottom" className="mt-8" />
       </div>
     </>
   )

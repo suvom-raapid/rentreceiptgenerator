@@ -3,7 +3,6 @@ import { ArrowLeft, Calendar, Clock, Share2, Copy, Check } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import SEOHead from '../components/SEOHead'
 import BlogCard from '../components/BlogCard'
-import AdPlaceholder from '../components/AdPlaceholder'
 import { blogPosts } from '../lib/blogData'
 
 function extractHeadings(html: string): { id: string; text: string }[] {
@@ -139,8 +138,6 @@ export default function BlogPost() {
           </div>
         </div>
 
-        <AdPlaceholder slot="blog-post-top" />
-
         {/* Table of Contents */}
         {headings.length > 0 && (
           <div className="bg-bg-light border border-border rounded-lg p-5 mb-8">
@@ -167,8 +164,6 @@ export default function BlogPost() {
           className="prose prose-slate max-w-none [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-primary [&_h2]:mt-8 [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-text-primary [&_h3]:mt-6 [&_h3]:mb-2 [&_p]:text-text-secondary [&_p]:leading-relaxed [&_p]:mb-4 [&_ul]:pl-6 [&_ul]:space-y-1 [&_ol]:pl-6 [&_ol]:space-y-1 [&_li]:text-text-secondary [&_strong]:text-text-primary [&_table]:w-full [&_table]:border-collapse [&_th]:bg-bg-light [&_th]:border [&_th]:border-border [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:text-sm [&_th]:font-semibold [&_td]:border [&_td]:border-border [&_td]:px-3 [&_td]:py-2 [&_td]:text-sm"
           dangerouslySetInnerHTML={{ __html: contentWithIds }}
         />
-
-        <AdPlaceholder slot="blog-post-bottom" className="my-8" />
 
         {/* CTA */}
         <div className="bg-accent/10 border border-accent/30 rounded-xl p-6 text-center my-8">

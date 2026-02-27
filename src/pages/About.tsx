@@ -1,6 +1,4 @@
 import SEOHead from '../components/SEOHead'
-import AdPlaceholder from '../components/AdPlaceholder'
-
 export default function About() {
   return (
     <>
@@ -79,7 +77,6 @@ export default function About() {
           </p>
         </div>
 
-        <AdPlaceholder slot="about-bottom" className="mt-8" />
       </div>
     </>
   )

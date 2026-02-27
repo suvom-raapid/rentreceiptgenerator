@@ -1,6 +1,5 @@
 import SEOHead from '../components/SEOHead'
 import BlogCard from '../components/BlogCard'
-import AdPlaceholder from '../components/AdPlaceholder'
 import { blogPosts } from '../lib/blogData'
 
 export default function Blog() {
@@ -23,8 +22,6 @@ export default function Blog() {
             <BlogCard key={post.slug} post={post} />
           ))}
         </div>
-
-        <AdPlaceholder slot="blog-mid" className="my-6" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {blogPosts.slice(4).map((post) => (

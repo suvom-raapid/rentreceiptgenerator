@@ -1,7 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { parse, format, lastDayOfMonth, addMonths, isBefore, isEqual } from 'date-fns';
 import { numberToWords } from './numberToWords';
-import { PDF_CONFIG } from './constants';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -40,10 +39,6 @@ export interface FormData {
 // Receipt generation
 // ---------------------------------------------------------------------------
 
-/**
- * Given form data, generates an array of ReceiptData objects, one per month
- * in the [fromMonth, toMonth] range (inclusive).
- */
 export function generateReceipts(formData: FormData): ReceiptData[] {
   const receipts: ReceiptData[] = [];
 
@@ -78,16 +73,9 @@ export function generateReceipts(formData: FormData): ReceiptData[] {
   return receipts;
 }
 
-/**
- * Resolves the actual payment date for a given month based on the user's
- * payment-date preference.
- *
- * - "last" -> last day of the month
- * - "1"-"28" -> that day of the month (clamped to last day if needed)
- */
 function resolvePaymentDate(monthDate: Date, paymentDatePref: string): Date {
   const year = monthDate.getFullYear();
-  const month = monthDate.getMonth(); // 0-indexed
+  const month = monthDate.getMonth();
 
   if (paymentDatePref === 'last') {
     return lastDayOfMonth(monthDate);
@@ -101,141 +89,170 @@ function resolvePaymentDate(monthDate: Date, paymentDatePref: string): Date {
 }
 
 // ---------------------------------------------------------------------------
-// PDF generation
+// PDF generation — Professional receipt layout
 // ---------------------------------------------------------------------------
 
-const {
-  pageWidth,
-  margin,
-  receiptHeight,
-  receiptsPerPage,
-  separatorDash,
-  fonts,
-} = PDF_CONFIG;
+const PAGE_W = 210;
+const MARGIN = 15;
+const CONTENT_W = PAGE_W - MARGIN * 2;
+const RECEIPT_H = 85;
+const RECEIPTS_PER_PAGE = 3;
+const GAP = 8;
 
-const contentWidth = pageWidth - margin * 2;
-
-/**
- * Draws a dashed horizontal separator line.
- */
 function drawDashedLine(doc: jsPDF, y: number): void {
-  const { dashLength, gapLength } = separatorDash;
-  doc.setDrawColor(150, 150, 150);
-  doc.setLineWidth(0.3);
-
-  let x = margin;
-  const endX = pageWidth - margin;
-
-  while (x < endX) {
-    const segEnd = Math.min(x + dashLength, endX);
-    doc.line(x, y, segEnd, y);
-    x = segEnd + gapLength;
+  doc.setDrawColor(160, 160, 160);
+  doc.setLineWidth(0.2);
+  let x = MARGIN;
+  while (x < PAGE_W - MARGIN) {
+    const end = Math.min(x + 3, PAGE_W - MARGIN);
+    doc.line(x, y, end, y);
+    x = end + 2;
   }
 }
 
-/**
- * Draws a single receipt starting at the given y-offset.
- */
 function drawReceipt(doc: jsPDF, receipt: ReceiptData, startY: number): void {
-  const leftX = margin;
-  const rightX = pageWidth - margin;
-  let y = startY;
+  const left = MARGIN;
+  const right = PAGE_W - MARGIN;
 
-  // ---- Border rectangle ----
-  doc.setDrawColor(0);
-  doc.setLineWidth(0.4);
-  doc.rect(margin - 2, startY - 2, contentWidth + 4, receiptHeight - 4);
+  // Outer border — double line effect
+  doc.setDrawColor(40, 40, 40);
+  doc.setLineWidth(0.6);
+  doc.rect(left, startY, CONTENT_W, RECEIPT_H);
+  doc.setLineWidth(0.2);
+  doc.rect(left + 1.5, startY + 1.5, CONTENT_W - 3, RECEIPT_H - 3);
 
-  // ---- Title ----
+  let y = startY + 6;
+
+  // ── Title bar ──
+  doc.setFillColor(26, 54, 93); // primary color
+  doc.rect(left + 3, y - 4, CONTENT_W - 6, 9, 'F');
   doc.setFont('Helvetica', 'bold');
-  doc.setFontSize(fonts.heading);
-  doc.text('RENT RECEIPT', pageWidth / 2, y + 2, { align: 'center' });
-  y += 7;
+  doc.setFontSize(11);
+  doc.setTextColor(255, 255, 255);
+  doc.text('RENT RECEIPT', PAGE_W / 2, y + 1.5, { align: 'center' });
 
-  // ---- Receipt No & Date row ----
+  // Receipt number on the right of title bar
   doc.setFont('Helvetica', 'normal');
-  doc.setFontSize(fonts.body);
-  doc.text(`Receipt No: ${receipt.receiptNumber}`, leftX, y);
-  doc.text(`Date: ${receipt.date}`, rightX, y, { align: 'right' });
-  y += 4;
+  doc.setFontSize(7);
+  doc.text(`No. ${receipt.receiptNumber}`, right - 6, y + 1.5, { align: 'right' });
+  doc.setTextColor(0, 0, 0);
+  y += 10;
 
-  doc.text(`Period: ${receipt.monthYear}`, leftX, y);
-  y += 6;
+  // ── Date & Period row ──
+  doc.setFontSize(8);
+  doc.setFont('Helvetica', 'bold');
+  doc.text('Date:', left + 4, y);
+  doc.setFont('Helvetica', 'normal');
+  doc.text(receipt.date, left + 16, y);
 
-  // ---- Main body text ----
-  doc.setFontSize(fonts.body);
+  doc.setFont('Helvetica', 'bold');
+  doc.text('Period:', left + 55, y);
+  doc.setFont('Helvetica', 'normal');
+  doc.text(receipt.monthYear, left + 70, y);
 
-  const bodyLine1 = `Received a sum of Rs. ${receipt.rentAmount.toLocaleString('en-IN')}/-`;
-  doc.text(bodyLine1, leftX, y);
-  y += 4;
-
-  const bodyLine2 = `(${receipt.rentAmountWords})`;
-  doc.setFont('Helvetica', 'italic');
-  doc.text(bodyLine2, leftX, y);
+  doc.setFont('Helvetica', 'bold');
+  doc.text('Mode:', right - 40, y);
+  doc.setFont('Helvetica', 'normal');
+  doc.text(receipt.paymentMode, right - 28, y);
   y += 5;
 
-  doc.setFont('Helvetica', 'normal');
-  const bodyLine3 = `from ${receipt.tenantName}${receipt.tenantPAN ? ` (PAN: ${receipt.tenantPAN})` : ''}`;
-  doc.text(bodyLine3, leftX, y);
+  // Thin separator
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.15);
+  doc.line(left + 4, y, right - 4, y);
   y += 4;
 
-  const bodyLine4 = `towards rent for the property at: ${receipt.propertyAddress}`;
-  // Handle long address by splitting
-  const addressLines = doc.splitTextToSize(bodyLine4, contentWidth);
-  doc.text(addressLines, leftX, y);
-  y += addressLines.length * 3.5 + 1.5;
+  // ── Body paragraph ──
+  doc.setFontSize(8.5);
+  doc.setFont('Helvetica', 'normal');
 
-  const bodyLine5 = `Payment Mode: ${receipt.paymentMode}`;
-  doc.text(bodyLine5, leftX, y);
-  y += 6;
+  const amountStr = `Rs. ${receipt.rentAmount.toLocaleString('en-IN')}/-`;
+  const line1 = `Received a sum of  ${amountStr}  (${receipt.rentAmountWords})`;
+  const wrappedLine1 = doc.splitTextToSize(line1, CONTENT_W - 10);
+  doc.text(wrappedLine1, left + 4, y);
 
-  // ---- Footer: Landlord info + Signature + Revenue stamp ----
-  const footerY = startY + receiptHeight - 16;
+  // Bold the amount within the first line
+  const amountX = left + 4 + doc.getTextWidth('Received a sum of  ');
+  doc.setFont('Helvetica', 'bold');
+  doc.text(amountStr, amountX, y);
+  doc.setFont('Helvetica', 'normal');
+  y += wrappedLine1.length * 3.5 + 1;
 
-  // Landlord details (left side)
-  doc.setFontSize(fonts.small);
-  doc.text(`Landlord: ${receipt.landlordName}`, leftX, footerY);
-  if (receipt.landlordPAN) {
-    doc.text(`PAN: ${receipt.landlordPAN}`, leftX, footerY + 4);
-  }
+  const tenantLine = `from Mr./Ms. ${receipt.tenantName}${receipt.tenantPAN ? `  (PAN: ${receipt.tenantPAN})` : ''}`;
+  doc.text(tenantLine, left + 4, y);
+  y += 4;
 
-  // Revenue stamp box (center)
+  const addressLine = `towards rent for the month of ${receipt.monthYear} for the property at:`;
+  doc.text(addressLine, left + 4, y);
+  y += 3.5;
+
+  doc.setFont('Helvetica', 'italic');
+  const addressWrapped = doc.splitTextToSize(receipt.propertyAddress, CONTENT_W - 10);
+  doc.text(addressWrapped, left + 4, y);
+  doc.setFont('Helvetica', 'normal');
+
+  // ── Footer section ──
+  const footerY = startY + RECEIPT_H - 22;
+
+  // Thin separator above footer
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.15);
+  doc.line(left + 4, footerY - 2, right - 4, footerY - 2);
+
+  // Revenue stamp (bottom-left)
   if (receipt.includeRevenueStamp) {
-    const stampX = pageWidth / 2 - 12;
-    const stampY = footerY - 2;
-    const stampW = 24;
-    const stampH = 12;
+    const stampX = left + 5;
+    const stampY = footerY;
+    const stampW = 18;
+    const stampH = 18;
 
-    doc.setDrawColor(100);
-    doc.setLineWidth(0.3);
+    // Stamp border
+    doc.setDrawColor(180, 140, 40);
+    doc.setLineWidth(0.4);
     doc.rect(stampX, stampY, stampW, stampH);
+    // Inner border
+    doc.setLineWidth(0.15);
+    doc.rect(stampX + 1, stampY + 1, stampW - 2, stampH - 2);
 
+    // Stamp text
     doc.setFontSize(7);
-    doc.setFont('Helvetica', 'italic');
-    doc.setTextColor(120, 120, 120);
-    doc.text('Revenue', pageWidth / 2, footerY + 2, { align: 'center' });
-    doc.text('Stamp', pageWidth / 2, footerY + 5.5, { align: 'center' });
+    doc.setFont('Helvetica', 'bold');
+    doc.setTextColor(150, 110, 20);
+    doc.text('REVENUE', stampX + stampW / 2, stampY + 6, { align: 'center' });
+    doc.text('STAMP', stampX + stampW / 2, stampY + 9.5, { align: 'center' });
+    doc.setFontSize(9);
+    doc.text('₹1', stampX + stampW / 2, stampY + 14, { align: 'center' });
     doc.setTextColor(0, 0, 0);
     doc.setFont('Helvetica', 'normal');
   }
 
-  // Signature line (right side)
-  const sigLineX = rightX - 45;
-  const sigLineEndX = rightX;
-  doc.setDrawColor(0);
+  // Landlord info (center)
+  const centerX = PAGE_W / 2;
+  doc.setFontSize(7.5);
+  doc.setFont('Helvetica', 'normal');
+  doc.text(`Landlord: ${receipt.landlordName}`, centerX, footerY + 6, { align: 'center' });
+  if (receipt.landlordPAN) {
+    doc.text(`PAN: ${receipt.landlordPAN}`, centerX, footerY + 10, { align: 'center' });
+  }
+
+  // Signature line (bottom-right)
+  const sigStart = right - 50;
+  const sigEnd = right - 5;
+  doc.setDrawColor(80, 80, 80);
   doc.setLineWidth(0.3);
-  doc.line(sigLineX, footerY + 4, sigLineEndX, footerY + 4);
-  doc.setFontSize(fonts.small);
-  doc.text('Signature of Landlord', (sigLineX + sigLineEndX) / 2, footerY + 8, {
-    align: 'center',
-  });
+  doc.line(sigStart, footerY + 12, sigEnd, footerY + 12);
+  doc.setFontSize(7);
+  doc.text('Signature of Landlord', (sigStart + sigEnd) / 2, footerY + 16, { align: 'center' });
+
+  // "Received with thanks" at very bottom
+  doc.setFontSize(6.5);
+  doc.setTextColor(120, 120, 120);
+  doc.setFont('Helvetica', 'italic');
+  doc.text('Received with thanks', PAGE_W / 2, startY + RECEIPT_H - 2.5, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
+  doc.setFont('Helvetica', 'normal');
 }
 
-/**
- * Generates a PDF containing all rent receipts and triggers a download.
- *
- * Layout: 3 receipts per A4 page, separated by dashed cut-lines.
- */
 export function downloadPDF(
   receipts: ReceiptData[],
   formData: FormData
@@ -249,25 +266,22 @@ export function downloadPDF(
   doc.setFont('Helvetica');
 
   receipts.forEach((receipt, index) => {
-    const positionOnPage = index % receiptsPerPage;
+    const positionOnPage = index % RECEIPTS_PER_PAGE;
 
-    // Add new page when needed (but not for the very first receipt)
     if (index > 0 && positionOnPage === 0) {
       doc.addPage();
     }
 
-    const receiptY = margin + positionOnPage * (receiptHeight + 8);
+    const receiptY = MARGIN + positionOnPage * (RECEIPT_H + GAP);
 
     drawReceipt(doc, receipt, receiptY);
 
-    // Draw dashed separator after each receipt except the last on the page
-    if (positionOnPage < receiptsPerPage - 1 && index < receipts.length - 1) {
-      const separatorY = receiptY + receiptHeight;
+    if (positionOnPage < RECEIPTS_PER_PAGE - 1 && index < receipts.length - 1) {
+      const separatorY = receiptY + RECEIPT_H + GAP / 2;
       drawDashedLine(doc, separatorY);
     }
   });
 
-  // Build filename
   const tenantSlug = formData.tenantName.replace(/\s+/g, '_').replace(/[^\w-]/g, '');
   const fromLabel = formatMonthLabel(formData.fromMonth);
   const toLabel = formatMonthLabel(formData.toMonth);
@@ -276,9 +290,6 @@ export function downloadPDF(
   doc.save(fileName);
 }
 
-/**
- * Converts "YYYY-MM" into a short label like "Jan2025".
- */
 function formatMonthLabel(yearMonth: string): string {
   const date = parse(yearMonth, 'yyyy-MM', new Date());
   return format(date, 'MMMyyyy');

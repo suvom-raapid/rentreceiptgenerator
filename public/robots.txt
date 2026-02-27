@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://suvomdas.github.io/rentreceiptgenerator/sitemap.xml

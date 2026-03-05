@@ -68,6 +68,18 @@ export default function About() {
             best way to support us and help more people discover this free resource.
           </p>
 
+          <h2 className="text-xl font-semibold text-primary mt-8 mb-3">About the Author</h2>
+          <div className="bg-bg-light border border-border rounded-lg p-5">
+            <p className="font-semibold text-text-primary mb-2">Suvom Das</p>
+            <p>
+              Suvom is the creator of RentReceiptIndia. With a background in technology and personal
+              finance, he has spent years navigating the Indian tax system as a salaried professional.
+              Frustrated by the lack of simple, trustworthy tools for generating rent receipts, he built
+              RentReceiptIndia to help fellow employees save time and hassle during tax season. He holds
+              a degree from IIT Patna and has deep experience in web development and financial technology.
+            </p>
+          </div>
+
           <h2 className="text-xl font-semibold text-primary mt-8 mb-3">Disclaimer</h2>
           <p>
             This tool is provided for informational purposes only. It is not a substitute for

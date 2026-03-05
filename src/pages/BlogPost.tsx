@@ -91,8 +91,8 @@ export default function BlogPost() {
             datePublished: post.publishDate,
             dateModified: post.publishDate,
             author: {
-              '@type': 'Organization',
-              name: 'RentReceiptIndia',
+              '@type': 'Person',
+              name: 'Suvom Das',
             },
           }),
         }}
@@ -135,6 +135,17 @@ export default function BlogPost() {
                 {tag}
               </span>
             ))}
+          </div>
+        </div>
+
+        {/* Author Byline */}
+        <div className="flex items-center gap-3 mb-6 pb-6 border-b border-border">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+            SD
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-text-primary leading-tight">Suvom Das</p>
+            <p className="text-xs text-text-secondary">IIT Patna grad, personal finance enthusiast, creator of RentReceiptIndia</p>
           </div>
         </div>
 

@@ -10,7 +10,7 @@ export default function Disclaimer() {
 
       <div className="max-w-3xl mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold text-primary mb-2">Disclaimer</h1>
-        <p className="text-sm text-text-secondary mb-8">Last updated: January 1, 2025</p>
+        <p className="text-sm text-text-secondary mb-8">Last updated: March 5, 2026</p>
 
         <div className="prose prose-slate max-w-none space-y-5 text-text-secondary leading-relaxed">
           <h2 className="text-xl font-semibold text-primary mt-8 mb-3">General Disclaimer</h2>
